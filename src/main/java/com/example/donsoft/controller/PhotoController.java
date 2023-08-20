@@ -1,14 +1,15 @@
 package com.example.donsoft.controller;
 
 import com.example.donsoft.model.Photo;
+import com.example.donsoft.services.PhotoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -16,12 +17,12 @@ import java.util.*;
  */
 @RestController
 public class PhotoController {
-    private Map<String,Photo> db  = new HashMap<String,Photo>(){{
-        put("1", new Photo("1","donsoft.jpeg"));
-        put("2", new Photo("2","donsft.jpeg"));
-        put("3", new Photo("3","dnsoft.jpeg"));
-    }};
 
+    private final PhotoService photoService;
+
+    public PhotoController(PhotoService photoService) {
+        this.photoService = photoService;
+    }
     /**
      * Hello string.
      *
@@ -38,26 +39,81 @@ public class PhotoController {
      * @return the list
      */
     @GetMapping("/photos")
-    public Collection<Photo> get(){
-        return db.values();
+    public Iterable<Photo> get(){
+        return photoService.get();
     }
 
+    /**
+     * Get response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     */
     @GetMapping("/photos/{id}")
-    public ResponseEntity<Photo> get(@PathVariable String id){
-        if(db.containsKey(id)){
-            return ResponseEntity.of(Optional.of(db.get(id)));
+    public ResponseEntity<Photo> get(@PathVariable Integer id){
+        Photo photo = photoService.get(id);
+        if(photo == null){
+            return ResponseEntity.of(Optional.of(photoService.get(id)));
         }else {
             return ResponseEntity.notFound().build();
         }
     }
 
+    /**
+     * Delete response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     */
     @DeleteMapping("/photos/{id}")
-    public ResponseEntity<HttpStatus> delete(@PathVariable String id){
-        if(db.containsKey(id)){
-            db.remove(id);
+    public ResponseEntity<HttpStatus> delete(@PathVariable Integer id){
+        Photo photo = photoService.get(id);
+        if(photo == null){
+            photoService.remove(id);
             return ResponseEntity.of(Optional.of(HttpStatus.ACCEPTED));
         }else{
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * Add photo response entity.
+     *
+     * @param photo the photo
+     * @return the response entity
+     */
+   /* @PostMapping("/addPhoto")
+    public ResponseEntity<HttpStatus> addPhoto(@RequestBody @Valid Photo photo){
+        photoService.save(photo.getId(), photo);
+        return ResponseEntity.of(Optional.of(HttpStatus.CREATED));
+    }*/
+
+    /**
+     * Add photos response entity.
+     *
+     * @param file the file
+     * @return the response entity
+     * @throws IOException the io exception
+     */
+    @PostMapping("/addPhotos")
+    public ResponseEntity<HttpStatus> addPhotos(@RequestPart("fileName") MultipartFile file) throws IOException {
+        Photo photo = photoService.save(file.getOriginalFilename(),file.getContentType(), file.getBytes());
+        return ResponseEntity.of(Optional.of(HttpStatus.CREATED));
+    }
+
+    /*@PostMapping("/addPhotos")
+    public ResponseEntity<HttpStatus> addPhotos(
+            @RequestPart("fileName") MultipartFile file,
+            @RequestParam("id") String id,
+            @RequestParam("data") int data
+    ) throws IOException {
+        // Your existing code to handle the file
+
+        // Now you can use the values of param1 and param2 in your logic
+        System.out.println("Param 1: " + id);
+        System.out.println("Param 2: " + data);
+
+        return ResponseEntity.of(Optional.of(HttpStatus.CREATED));
+    }*/
+
 }

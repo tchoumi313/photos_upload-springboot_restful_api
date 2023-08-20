@@ -1,22 +1,41 @@
 package com.example.donsoft.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+import javax.validation.constraints.NotEmpty;
+
+@Table("photos")
 public class Photo {
-    private  String id;
+    @Id
+    private  Integer id;
+    @NotEmpty
     private String fileName;
+
+    private String contentType;
+    @JsonIgnore
+    private byte[] image;
+
 
     public Photo() {
     }
 
-    public Photo(String id, String fileName) {
-        this.id = id;
-        this.fileName = fileName;
+
+
+    public byte[] getImage() {
+        return image;
     }
 
-    public String getId() {
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -26,5 +45,13 @@ public class Photo {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentType() {
+        return this.contentType;
     }
 }
